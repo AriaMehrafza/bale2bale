@@ -17,8 +17,6 @@ NOTE: You'll need the UID of the two channels/groups you've made. In order to fi
 ```web.bale.ai/chat?uid=<UID>```.
 Copy the UID from here.
 
-<br>
-
 ### Linux
 
 1. Clone the repository:
@@ -43,8 +41,6 @@ chmod +x setup.sh
 ```
 
 The setup file installs requirements using pip, then inputs the config data from user.
-
-<br>
 
 ### Windows
 
