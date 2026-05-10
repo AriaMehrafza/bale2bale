@@ -1,6 +1,6 @@
 # bale2bale
 
-Minimal Telegram → Bale forwarder bot.
+Minimal Telegram to Bale forwarder bot.
 
 The bot fetches Telegram channels data **through Bale** using [tg.i-c-a.su](https://tg.i-c-a.su) and forwards new posts directly into a Bale channel/group.
 
