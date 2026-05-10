@@ -1,6 +1,6 @@
 # bale2bale
 
-Minimal Telegram → Bale forwarder bot designed for "Melli Internet" situations where Bale servers still have access to the international network.
+Minimal Telegram to Bale forwarder bot designed for "Melli Internet" situations where Bale servers still have access to the international network.
 
 The bot fetches Telegram channels data **through Bale** using [tg.i-c-a.su](https://tg.i-c-a.su) and sends new posts directly into a Bale channel/group.
 
