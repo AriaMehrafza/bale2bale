@@ -66,7 +66,7 @@ def dl_doc(file_id, path, file_name):
 
     try:
         dl_res = requests.get(
-            f"https://tapi.bale.ai/file/bot{config.BALE_TOKEN}/{file_path}",
+            f"https://tapi.bale.ai/file/bot{config.BOT_TOKEN}/{file_path}",
             timeout=15
         )
 
