@@ -11,7 +11,7 @@ def gen_url(usr_name, limit=1) -> str:
 
 
 def send_doc(url, caption=None, chat_id=CID):
-    """ Upload a document using direct-link in Bale """
+    """ Upload a document using direct-link to Bale """
     payload = {
         "chat_id": chat_id,
         "document": url,
@@ -40,7 +40,7 @@ def send_doc(url, caption=None, chat_id=CID):
 
 
 def dl_doc(file_id, path, file_name):
-    """ Download a document using direct-link in Bale """
+    """ Download a document using File ID from Bale """
     payload = {
         "file_id": file_id
     }
