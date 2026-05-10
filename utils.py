@@ -3,7 +3,7 @@ import json
 import config
 
 
-URL = f"https://tapi.bale.ai/bot{config.BALE_TOKEN}"
+URL = f"https://tapi.bale.ai/bot{config.BOT_TOKEN}"
 CID = config.DATAS_UID
 
 def gen_url(usr_name, limit=1) -> str:
