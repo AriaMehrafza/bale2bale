@@ -12,20 +12,10 @@ import utils
 
 
 # Format: "channel_username": number of messages
-# NOTE: Use lower chars
-channels = {
-    "zxc0923mxc8123": 2,
-}
+channels = config.CHANNELS
 
-# Used inside forwarded Telegram messages in Bale
-# instead of raw channel names
-names_dict = {
-    "BBCPersian": "BBC Persian | بی‌بی‌سی فارسی",
-}
-
-
-BALE_TOKEN = config.BALE_TOKEN
 CHNL_CID = config.CHNL_UID
+BOT_URL = f"https://tapi.bale.ai/bot{config.BOT_TOKEN}"
 
 def now():
     """
@@ -144,7 +134,7 @@ def send_msg_to_bale(text, chat_id=CHNL_CID):
         print("")
     
         r = requests.post(
-            f"https://tapi.bale.ai/bot{BALE_TOKEN}/sendMessage",
+            f"{BOT_URL}/sendMessage",
             json={
                 "chat_id": chat_id,
                 "text": text,
@@ -172,7 +162,7 @@ def send_photo_to_bale(photo_url, caption, chat_id=CHNL_CID):
         print("-----------------------")
 
         r = requests.post(
-            f"https://tapi.bale.ai/bot{BALE_TOKEN}/sendPhoto",
+            f"{BOT_URL}/sendPhoto",
             json={
                 "chat_id": chat_id,
                 "photo": photo_url,
@@ -200,7 +190,7 @@ def send_video_to_bale(video_url, caption, chat_id=CHNL_CID):
         print("---------------------")
 
         r = requests.post(
-            f"https://tapi.bale.ai/bot{BALE_TOKEN}/sendVideo",
+            f"{BOT_URL}/sendVideo",
             json={
                 "chat_id": chat_id,
                 "video": video_url,
@@ -233,7 +223,7 @@ def send_audio_to_bale(audio_url, caption, chat_id=CHNL_CID):
         print("---------------------")
 
         r = requests.post(
-            f"https://tapi.bale.ai/bot{BALE_TOKEN}/sendAudio",
+            f"{BOT_URL}/sendAudio",
             json={
                 "chat_id": chat_id,
                 "audio": audio_url,
@@ -311,7 +301,7 @@ def parse_message(entry, channel_name, channel_username):
     time_str = format_time(entry.get("date"))
 
     parts.append("\n———")
-    parts.append(f"🆔 {names_dict.get(channel_name, channel_name)}")
+    parts.append(f"🆔 {channel_name}")
     parts.append(f"⏰ {time_str}")
 
     caption = "\n".join([p for p in parts if p.strip()])
@@ -382,7 +372,7 @@ def pin_msg(msg_id, chat_id=CHNL_CID):
 
     try:
         res = requests.post(
-            f"https://tapi.bale.ai/bot{BALE_TOKEN}/pinChatMessage",
+            f"{BOT_URL}/pinChatMessage",
             json=payload,
             timeout=10,
         )
@@ -402,12 +392,12 @@ def unpin_msg(msg_id, chat_id=CHNL_CID):
 
     try:
         res = requests.post(
-            f"https://tapi.bale.ai/bot{BALE_TOKEN}/unPinChatMessage",
+            f"{BOT_URL}/unPinChatMessage",
             json=payload,
             timeout=10,
         )
     except Exception as e:
-        print("Got error while pinning message: ", e)
+        print(f"[{now()}] Got error while pinning message: ", e)
         return
 
     return res
@@ -433,25 +423,25 @@ def update_chnl_list(chat_id):
         "description": text,
     }
 
-    print("[+] List ready. Sending the request to Bale . . .")
+    print(f"[{now()}] List ready. Sending the request to Bale . . .")
 
     try:
         res = requests.post(
-            f"https://tapi.bale.ai/bot{BALE_TOKEN}/setChatDescription",
+            f"{BOT_URL}/setChatDescription",
             json=payload,
         )
         print(json.dumps(res.json(), indent=4)) 
     except Exception as e:
-        print("Got error while editting list: ", e)
+        print(f"[{now()}] Got error while editting list: ", e)
         return
 
     print("🆗 DONE!\n")
 
 
 def main():
-    print("\n====================================================")
+    print("\n============================================================")
     print(f"[{now()}] Bale Telegram Forwarder Bot Running")
-    print("====================================================\n")
+    print("============================================================\n")
 
     print(f"[{now()}] Making needed directories . . .")
     make_dirs()
