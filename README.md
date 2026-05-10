@@ -8,6 +8,7 @@ The bot fetches Telegram channels data **through Bale** using [tg.i-c-a.su](http
 
 ## Installation
 
+### First Steps on Bale
 0. If you don't have a channel/group in which you want the bot forward the messages, make one.
 1. Make a new channel/group in Bale. This channel/group is gonna be the tunnel for bot to receive messages data from API.
 2. Make a bot using [BotFather](https://ble.ir/BotFather) bot in Bale. Save the Token somewhere safe.
