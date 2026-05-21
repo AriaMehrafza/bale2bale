@@ -449,7 +449,11 @@ def save_last_ids(channel, last_ids, limit):
 
 def fetch_via_bale(channel: str, limit: int, retries=5) -> json:
     """ Fetchs Telegram messages using the API from Bale """
+    log("Fetching messages through Bale")
+
     url = f"https://tg.i-c-a.su/json/{channel}?limit={limit}"
+
+    print(f"URL is: {url}")
     
     while retries:
         retries -= 1
@@ -487,6 +491,8 @@ def fetch_via_proxy(channel: str, limit: int, retries=5) -> json:
     Fetchs Telegram messages using SOCKS proxy.
     (usable if you have a SOCKS proxy which can fetch from the API)
     """
+    log("Fetching messages through Proxy")
+
     proxies = {
         "http": "socks5h://127.0.0.1:1080",
         "https": "socks5h://127.0.0.1:1080"
