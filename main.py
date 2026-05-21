@@ -104,7 +104,6 @@ def clean_proxy(text: str):
     return f"https://t.me/proxy?server={server}&port={port}&secret={secret}"
 
 
-
 def format_time(raw_date):
     """ Convert Gregorian dates to Persian readable timestamps """
 
@@ -125,6 +124,7 @@ def format_time(raw_date):
             return raw_date
 
     return "unknown time"
+
 
 def retry_req(func, max_retries=5, delay=2, backoff=1.5):
     """
@@ -494,6 +494,8 @@ def fetch_via_proxy(channel: str, limit: int, retries=5) -> json:
     log("Fetching messages through Proxy")
 
     proxies = {
+        # Add your SOCKS proxy here.
+        # For e.g. if the proxy is running on localhost port 1080:
         "http": "socks5h://127.0.0.1:1080",
         "https": "socks5h://127.0.0.1:1080"
     }
@@ -612,7 +614,7 @@ def main():
         for channel, limit in channels.items():
             print(f"\n[{now()}] Checking channel: {channel}\n")
 
-            data = fetch_via_proxy(channel, limit) # fetch_via_bale(channel, limit)
+            data = fetch_via_bale(channel, limit)
 
             if not data:
                 log("Empty fetch result")
