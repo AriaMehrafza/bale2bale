@@ -608,7 +608,7 @@ def main():
         for channel, limit in channels.items():
             print(f"\n[{now()}] Checking channel: {channel}\n")
 
-            data = fetch_via_proxy(channel, limit) # fetch_via_bale(channel, limit)
+            data = fetch_via_bale(channel, limit)
 
             if not data:
                 log("Empty fetch result")
