@@ -104,7 +104,6 @@ def clean_proxy(text: str):
     return f"https://t.me/proxy?server={server}&port={port}&secret={secret}"
 
 
-
 def format_time(raw_date):
     """ Convert Gregorian dates to Persian readable timestamps """
 
@@ -125,6 +124,7 @@ def format_time(raw_date):
             return raw_date
 
     return "unknown time"
+
 
 def retry_req(func, max_retries=5, delay=2, backoff=1.5):
     """
