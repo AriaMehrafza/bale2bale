@@ -454,6 +454,8 @@ def fetch_via_bale(channel: str, limit: int, retries=5) -> json:
     url = f"https://tg.i-c-a.su/json/{channel}?limit={limit}"
     
     while retries:
+        time.sleep(5)
+
         retries -= 1
         try:
             log(f"Fetching {channel} via BALE!: {url}")
@@ -474,14 +476,14 @@ def fetch_via_bale(channel: str, limit: int, retries=5) -> json:
                     try:
                         return json.load(f)
                     except json.JSONDecodeError:
-                        return {}
+                        return None
 
         except Exception as e:
             log(f"❌ Error fetching {channel}: {e}\n")
             time.sleep(10)
 
     if retries == -1:
-        return {}
+        return None
 
 
 def fetch_via_proxy(channel: str, limit: int, retries=5) -> json:
