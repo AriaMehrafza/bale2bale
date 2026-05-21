@@ -506,7 +506,7 @@ def fetch_via_proxy(channel: str, limit: int, retries=5) -> json:
         retries -= 1
 
         try:
-            res = requests.get(url, proxies=proxies)
+            res = requests.get(url, proxies=proxies, timeout=15)
             
             if res.status_code != 200:
                 raise Exception(f"Status code: {res.status_code} | Details: {res.text}")
