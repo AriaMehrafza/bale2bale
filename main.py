@@ -488,6 +488,8 @@ def fetch_via_proxy(channel: str, limit: int, retries=5) -> json:
     (usable if you have a SOCKS proxy which can fetch from the API)
     """
     proxies = {
+        # Add your SOCKS proxy here.
+        # For e.g. if the proxy is running on localhost port 1080:
         "http": "socks5h://127.0.0.1:1080",
         "https": "socks5h://127.0.0.1:1080"
     }
