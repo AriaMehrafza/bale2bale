@@ -1,17 +1,25 @@
+# NOTE:
+# As Bale is recently unstable in downloading documents
+# from direct-link (specially from foreign servers),
+# if you have a SOCKS proxy (V2ray for e.g.),
+# you can use it instead of Bale-tunnel by modifying the
+# 'fetch_via_proxy' function on line 431 
+# and replacing the 'fetch_via_bale' on line 583
+# with 'fetch_via_proxy' :)
+
 import time
 import re
 import os
-import sys
-import select
 import requests
 import json
 from html import unescape
 from datetime import datetime
 import config
 import utils
+import jalali
 
 
-# Format: "channel_username": number of messages
+# Format: <CHANNEL_USERNAME>: <NUMBER_OF_MESSAGES>
 channels = config.CHANNELS
 
 CHNL_CID = config.CHNL_UID
@@ -22,13 +30,26 @@ def now():
     Return current local time formatted for logs.
     Example: 2026-05-10 | 12:34:56
     """
-    return datetime.now().strftime("%Y-%m-%d | %H:%M:%S")
+    date = datetime.now().strftime("%Y-%m-%d")
+    time = datetime.now().strftime("%H:%M:%S")
+    return f"{date} | {time}"
+
+
+def log(msg):
+    """
+    Prints logged format.
+
+    For example:
+        [2026-05-21 | 18:39:20] Making needed directories . . .
+    """
+    print(f"[{now()}] {msg}")
 
 
 def make_dirs():
     """ Make needed directories """
-    os.makedirs("datas", exist_ok=True)
-    os.makedirs("api_results", exist_ok=True)
+    os.makedirs("datas/", exist_ok=True)
+    os.makedirs("datas/last_ids/", exist_ok=True)
+    os.makedirs("datas/api_results/", exist_ok=True)
 
 
 def build_media_url(channel_uname: str, msg_id: int):
@@ -83,23 +104,29 @@ def clean_proxy(text: str):
     return f"https://t.me/proxy?server={server}&port={port}&secret={secret}"
 
 
+
 def format_time(raw_date):
-    """ Normalize Telegram date formats into readable timestamps """
+    """ Convert Gregorian dates to Persian readable timestamps """
+
     if isinstance(raw_date, int):
-        return datetime.fromtimestamp(raw_date).strftime("%Y-%m-%d | %H:%M")
+        g = datetime.fromtimestamp(raw_date)
+        return jalali.Gregorian(
+            g.year, g.month, g.day
+        ).persian_string() + f" | {g.strftime('%H:%M')}"
 
     if isinstance(raw_date, str):
         try:
-            return datetime.fromisoformat(raw_date.replace("Z", "")).strftime(
-                "%Y-%m-%d | %H:%M"
-            )
+            g = datetime.fromisoformat(raw_date.replace("Z", ""))
+            p_date = jalali.Gregorian(
+                g.year, g.month, g.day
+            ).persian_string()
+            return f"{p_date} | {g.strftime('%H:%M')}"
         except:
             return raw_date
 
     return "unknown time"
 
-
-def retry_req(func, max_retries=10, delay=2, backoff=1.5):
+def retry_req(func, max_retries=5, delay=2, backoff=1.5):
     """
     Execute a function with automatic retry handling.
 
@@ -110,30 +137,31 @@ def retry_req(func, max_retries=10, delay=2, backoff=1.5):
     while attempt < max_retries:
         try:
             return func()
+
         except Exception as e:
             attempt += 1
-            print(f"[{now()}] Retry {attempt}/{max_retries} failed: {e}")
+            log(f"Retry {attempt}/{max_retries} failed: {e}")
 
             if attempt >= max_retries:
-                print(f"[{now()}] [-] Max retries reached, GIVING UP!")
+                log("Max retries reached, GIVING UP!")
                 return None
 
             delay *= backoff
-            print(f"[{now()}] [#] Sleeping {delay} seconds before retry . . .")
+            log(f"Sleeping {delay} seconds before retry . . .")
             time.sleep(delay)
 
 
-def send_msg_to_bale(text, chat_id=CHNL_CID):
+def send_msg(text, chat_id=CHNL_CID):
     """ Sends a text message to a specific Bale chat """
     def do_req():
         print("")
-        print(f"[{now()}] Sending message to Bale...")
+        log("Sending message to Bale...")
         print("------- BEGIN MESSAGE -------")
         print(text)
         print("-------- END MESSAGE --------")
         print("")
     
-        r = requests.post(
+        res = requests.post(
             f"{BOT_URL}/sendMessage",
             json={
                 "chat_id": chat_id,
@@ -142,26 +170,25 @@ def send_msg_to_bale(text, chat_id=CHNL_CID):
             timeout=10,
         )
 
-        if r.status_code != 200:
-            raise Exception(f"Bad status: {r.status_code} | {r.text}\n")
-            print(f"Message is: {text}")
+        if res.status_code != 200:
+            raise Exception(f"Bad status sending message: {res.status_code} | {res.text}\n")
 
-        print(f"[{now()}] Bale OK: {r.status_code}")
-        return r
+        log(f"Sent Message to Bale: {res.status_code}")
+        return res
 
     return retry_req(do_req)
 
 
-def send_photo_to_bale(photo_url, caption, chat_id=CHNL_CID):
+def send_photo(photo_url, caption, chat_id=CHNL_CID):
     """ Sends a photo with caption to a specific Bale chat """
     def do_req():
         print("")
-        print(f"[{now()}] Sending PHOTO to Bale . . .")
+        log("Sending PHOTO to Bale . . .")
         print("------- CAPTION -------")
         print(caption)
         print("-----------------------")
 
-        r = requests.post(
+        res = requests.post(
             f"{BOT_URL}/sendPhoto",
             json={
                 "chat_id": chat_id,
@@ -171,25 +198,29 @@ def send_photo_to_bale(photo_url, caption, chat_id=CHNL_CID):
             timeout=15,
         )
 
-        if r.status_code != 200:
-            raise Exception(f"Bad status: {r.status_code} | {r.text}")
+        if res.status_code == 413:
+            log("Photo is larger than Bale limit")
+            return send_msg(caption)
 
-        print(f"[{now()}] Bale Photo OK: {r.status_code}")
-        return r
+        elif res.status_code != 200:
+            raise Exception(f"Bad status: {res.status_code} | {res.text}")
+
+        log(f"Bale Photo OK: {res.status_code}")
+        return res
 
     return retry_req(do_req)
 
 
-def send_video_to_bale(video_url, caption, chat_id=CHNL_CID):
+def send_video(video_url, caption, chat_id=CHNL_CID):
     """ Sends a video with caption to a specific Bale chat """
     def do_req():
         print("")
-        print(f"[{now()}] Sending VIDEO to Bale . . .")
+        log("Sending VIDEO to Bale . . .")
         print("------ CAPTION ------")
         print(caption)
         print("---------------------")
 
-        r = requests.post(
+        res = requests.post(
             f"{BOT_URL}/sendVideo",
             json={
                 "chat_id": chat_id,
@@ -198,31 +229,29 @@ def send_video_to_bale(video_url, caption, chat_id=CHNL_CID):
             },
             timeout=25
         )
+        if res.status_code == 413:
+            log("Video is larger than Bale limit")
+            return send_msg(caption)
 
-        if r.status_code == 413:
-            print(f"[{now()}] [-] Video is larger than Bale limit")
-            return send_msg_to_bale(caption)
+        elif res.status_code != 200:
+            raise Exception(f"Bad status: {res.status_code} | {res.text}")
 
-        elif r.status_code != 200:
-            print(f"\n\nVideo URL: {video_url}\n\n")
-            raise Exception(f"Bad status: {r.status_code} | {r.text}")
-
-        print(f"[{now()}] Bale Video OK: {r.status_code}")
-        return r
+        log(f"Bale Video OK: {res.status_code}")
+        return res
 
     return retry_req(do_req)
 
 
-def send_audio_to_bale(audio_url, caption, chat_id=CHNL_CID):
+def send_audio(audio_url, caption, chat_id=CHNL_CID):
     """ Sends an audio file with caption to a specific Bale chat """
     def do_req():
         print("")
-        print(f"[{now()}] Sending AUDIO to Bale . . .")
+        log("Sending AUDIO to Bale . . .")
         print("------ CAPTION ------")
         print(caption)
         print("---------------------")
 
-        r = requests.post(
+        res = requests.post(
             f"{BOT_URL}/sendAudio",
             json={
                 "chat_id": chat_id,
@@ -232,12 +261,94 @@ def send_audio_to_bale(audio_url, caption, chat_id=CHNL_CID):
             timeout=15
         )
 
-        if r.status_code != 200:
-            raise Exception(f"Bad status: {r.status_code} | {r.text}")
+        if res.status_code == 413:
+            log("Audio is larger than Bale limit")
+            return send_msg(caption)
 
-        print(f"[{now()}] Bale Audio OK: {r.status_code}")
-        return r
+        elif res.status_code != 200:
+            raise Exception(f"Bad status: {res.status_code} | {res.text}")
 
+        log(f"Bale Audio OK: {res.status_code}")
+        return res
+
+    return retry_req(do_req)
+
+
+def get_doc(file_id, path, file_name):
+    """ Download a document using File ID from Bale """
+    payload = {
+        "file_id": file_id
+    }
+    
+    try:
+        res = requests.post(
+            f"{BOT_URL}/getFile",
+            json=payload,
+        )
+
+        print("\nfile_id: ", file_id)
+        print("\npayload: ", payload)
+
+        if res.status_code != 200:
+            raise Exception(f"Bad Status: {res.status_code} | {res.text}")
+            return False
+
+    except Exception as e:
+        log(f"Got error while getting the download link: {e}")
+        return False
+
+    file_path = res.json()['result']['file_path']
+
+    try:
+        dl_res = requests.get(
+            f"https://tapi.bale.ai/file/bot{config.BOT_TOKEN}/{file_path}",
+            timeout=15
+        )
+
+        if dl_res.status_code != 200:
+            raise Exception(f"Bad Status: {res.status_code} | {res.text}")
+    except Exception as e:
+        log("Got error while downloading the file: ")
+        return False
+
+    with open(f"{path}/{file_name}", "wb") as f:
+        f.write(dl_res.content)
+
+    return True
+
+
+def send_doc(url, caption=None, chat_id=CHNL_CID):
+    """ Upload a document using direct-link to Bale """
+    def do_req():
+        payload = {
+            "chat_id": chat_id,
+            "document": url,
+            "caption": caption,
+        }
+
+        try:
+            res = requests.post(
+                f"{BOT_URL}/sendDocument",
+                json=payload,
+                timeout=25,
+            )
+            
+            if res.status_code == 413:
+                log("Document is larger than Bale limit")
+            elif res.status_code != 200:
+                raise Exception(f"Bad Status: {res.status_code} | {res.text}")
+
+            js_res = json.dumps(res.json(), indent=4)
+            file_id = res.json()['result']['document']['file_id'].strip()
+
+            print("\nResult: ", res.status_code)
+            print("\n\nDetails: ", js_res)
+            return True, file_id
+
+        except Exception as e:
+            log(f"Got error while uploading the document: {e}\n")
+            return False, None
+    
     return retry_req(do_req)
 
 
@@ -252,7 +363,6 @@ def parse_message(entry, channel_name, channel_username):
 
     parts = [msg_text]
 
-    media = entry.get("media")
     msg_id = entry.get("id")
 
     media_type = "text"
@@ -265,8 +375,6 @@ def parse_message(entry, channel_name, channel_username):
 
         elif media.get("_") == "messageMediaWebPage":
             webpage = media.get("webpage", {})
-            if webpage.get("title"):
-                parts.append(f"🌐 {webpage.get('title')}")
             if webpage.get("url"):
                 parts.append(webpage.get("url"))
 
@@ -292,13 +400,16 @@ def parse_message(entry, channel_name, channel_username):
 
             if is_audio or (mime and mime.startswith("audio")):
                 media_type = "audio"
-                media_url = build_media_url(channel_username, msg_id)
 
             elif is_video or (mime and mime.startswith("video")):
                 media_type = "video"
-                media_url = build_media_url(channel_username, msg_id)
 
-    time_str = format_time(entry.get("date"))
+            else:
+                media_type = "document"
+
+            media_url = build_media_url(channel_username, msg_id)
+
+    time_str = format_time(entry.get("date")).replace("-", "/")
 
     parts.append("\n———")
     parts.append(f"🆔 {channel_name}")
@@ -308,11 +419,11 @@ def parse_message(entry, channel_name, channel_username):
 
     final_text = "\n".join([p for p in parts if p.strip()])
 
-    print(f"[{now()}] Parsed Message Preview:")
+    log("Parsed Message Preview:")
     print(final_text)
     print("--------------------------------------------------")
 
-    return media_type, (media_url if media_type != "text" else caption), caption
+    return media_type, (media_url if media_type != "text" else None), caption
 
 
 def load_last_ids(channel):
@@ -321,7 +432,7 @@ def load_last_ids(channel):
 
     Used to avoid duplicate forwarding after restarts.
     """
-    path = f"datas/last_id_{channel}.txt"
+    path = f"datas/last_ids/{channel}.txt"
     if os.path.exists(path):
         try:
             return [int(x) for x in open(path).read().strip().split()]
@@ -332,39 +443,78 @@ def load_last_ids(channel):
 
 def save_last_ids(channel, last_ids, limit):
     """ Saves the last 5 sent message's IDs to their last_id file """
-    with open(f"datas/last_id_{channel}.txt", "w") as f:
+    with open(f"datas/last_ids/{channel}.txt", "w") as f:
         f.write(" ".join(map(str, last_ids[-limit:])))
 
 
-def fetch_telegram_from_bale(channel, limit) -> json:
-    """ 
-    Fetchs Telegram messages using the API from Bale 
-
-    NOTE: Retries forever until succssful.
-    """
+def fetch_via_bale(channel: str, limit: int, retries=5) -> json:
+    """ Fetchs Telegram messages using the API from Bale """
     url = f"https://tg.i-c-a.su/json/{channel}?limit={limit}"
     
-    while True:
+    while retries:
+        retries -= 1
         try:
-            print(f"[{now()}] 🔵 Fetching {channel} via BALE!: {url}\n")
+            log(f"Fetching {channel} via BALE!: {url}")
             try:
-                _, file_id = utils.send_doc(url)
+                send_res, file_id = send_doc(url)
+
+                if not send_res:
+                    continue
+
             except Exception as e:
                 raise Exception(e)
+                continue
 
-            if utils.dl_doc(file_id, "api_results", f"{channel}.json"):
+            if get_doc(file_id, "datas/api_results", f"{channel}.json"):
                 print("\n✅ Successfully downloaded file to local\n")
 
-                with open(f"api_results/{channel}.json", "r") as f:
-                    return json.load(f)
+                with open(f"datas/api_results/{channel}.json", "r") as f:
+                    try:
+                        return json.load(f)
+                    except json.JSONDecodeError:
+                        return {}
 
         except Exception as e:
-            print(f"[{now()}] ❌ Error fetching {channel}: {e}\n")
+            log(f"❌ Error fetching {channel}: {e}\n")
             time.sleep(10)
+
+    if retries == -1:
+        return {}
+
+
+def fetch_via_proxy(channel: str, limit: int, retries=5) -> json:
+    """
+    Fetchs Telegram messages using SOCKS proxy.
+    (usable if you have a SOCKS proxy which can fetch from the API)
+    """
+    proxies = {
+        "http": "socks5h://127.0.0.1:1080",
+        "https": "socks5h://127.0.0.1:1080"
+    }
+ 
+    url = f"https://tg.i-c-a.su/json/{channel}?limit={limit}"
+   
+    while retries:
+        try:
+            res = requests.get(url, proxies=proxies)
+            
+            if res.status_code != 200:
+                raise Exception(f"Status code: {res.status_code} | Details: {res.text}")
+
+            return res.json()
+
+        except Exception as e:
+            log(f"❌ Error fetching {channel}: {e}\n")
+            time.sleep(10)
+
+        retries -= 1
+
+    if retries == 0:
+        return {}
 
 
 def pin_msg(msg_id, chat_id=CHNL_CID):
-    """ Pins a message in a chat """
+    """ Pins a message in a chat (currently unused) """
     payload = {
         "chat_id": chat_id,
         "message_id": msg_id,
@@ -376,15 +526,16 @@ def pin_msg(msg_id, chat_id=CHNL_CID):
             json=payload,
             timeout=10,
         )
+
     except Exception as e:
-        print("Got error while pinning message: ", e)
+        log(f"Got error while pinning message: {e}")
         return
 
     return res
 
 
 def unpin_msg(msg_id, chat_id=CHNL_CID):
-    """ Unpins a message in a chat """
+    """ Unpins a message in a chat (currently unused) """
     payload = {
         "chat_id": chat_id,
         "message_id": msg_id,
@@ -396,14 +547,15 @@ def unpin_msg(msg_id, chat_id=CHNL_CID):
             json=payload,
             timeout=10,
         )
+
     except Exception as e:
-        print(f"[{now()}] Got error while pinning message: ", e)
+        log(f"Got error while un-pinning message: {e}")
         return
 
     return res
 
 
-def update_chnl_list(chat_id):
+def update_chnl_desc(chat_id):
     """
     Update the channel description,
     containing the current supported channles
@@ -423,7 +575,7 @@ def update_chnl_list(chat_id):
         "description": text,
     }
 
-    print(f"[{now()}] List ready. Sending the request to Bale . . .")
+    log("List ready. Sending the request to Bale . . .")
 
     try:
         res = requests.post(
@@ -431,8 +583,9 @@ def update_chnl_list(chat_id):
             json=payload,
         )
         print(json.dumps(res.json(), indent=4)) 
+
     except Exception as e:
-        print(f"[{now()}] Got error while editting list: ", e)
+        log("Got error while editting list: ", e)
         return
 
     print("🆗 DONE!\n")
@@ -440,28 +593,32 @@ def update_chnl_list(chat_id):
 
 def main():
     print("\n============================================================")
-    print(f"[{now()}] Bale Telegram Forwarder Bot Running")
+    log("Bale Telegram Forwarder Bot Running")
     print("============================================================\n")
 
-    print(f"[{now()}] Making needed directories . . .")
+    log("Making needed directories . . .")
     make_dirs()
-    print(f"[{now()}] Directories done!")
+    log("Directories done!")
 
     last_ids = {ch: load_last_ids(ch) for ch in channels.keys()}
 
     while True:
         for channel, limit in channels.items():
-            print(f"\n[{now()}] Checking channel: {channel}")
+            print(f"\n[{now()}] Checking channel: {channel}\n")
 
-            data = fetch_telegram_from_bale(channel, limit)
+            data = fetch_via_proxy(channel, limit) # fetch_via_bale(channel, limit)
+
+            if not data:
+                log("Empty fetch result")
+                continue
 
             channel_name = data.get("chats", [{}])[0].get("title", channel)
             messages = data.get("messages", [])
 
-            print(f"[{now()}] Total fetched from {channel}: {len(messages)}")
+            log(f"Total fetched from {channel}: {len(messages)}")
 
             if not messages:
-                print(f"[{now()}]  No messages in channel {channel}.")
+                log(f"No messages in channel {channel}.")
                 continue
 
             messages.sort(key=lambda x: x.get("id", 0))
@@ -469,37 +626,44 @@ def main():
             seen_ids = set(last_ids[channel])
             new_msgs = [m for m in messages if m.get("id", 0) not in seen_ids]
 
-            print(f"[{now()}] New messages: {len(new_msgs)}")
+            log(f"New messages: {len(new_msgs)}")
 
             for entry in new_msgs:
                 msg_id = entry.get("id")
-                print(f"[{now()}] ➜ Processing message ID {msg_id}\n")
+                log(f"➜ Processing message ID {msg_id}\n")
 
-                media_type, payload, caption = parse_message(entry, channel_name, channel)
-                print(f"[{now()}] MEDIA TYPE IS: {media_type}")
+                media_type, file_url, caption = parse_message(entry, channel_name, channel)
+                log(f"MEDIA TYPE IS: {media_type}")
 
                 result = None
-                if media_type == "photo" and payload:
-                    result = send_photo_to_bale(payload, caption)
-                elif media_type == "video" and payload:
-                    result = send_video_to_bale(payload, caption)
-                elif media_type == "audio" and payload:
-                    result = send_audio_to_bale(payload, caption)
-                elif media_type == "text" and payload:
-                    result = send_msg_to_bale(payload)
+                if media_type == "photo":
+                    result = send_photo(file_url, caption)
+                elif media_type == "video":
+                    result = send_video(file_url, caption)
+                elif media_type == "audio":
+                    result = send_audio(file_url, caption)
+                elif media_type == "document":
+                    result = send_doc(file_url, caption)
+                elif media_type == "text":
+                    result = send_msg(caption)
 
                 if result:
-                    print(f"[{now()}] [+] Sent message {msg_id}")
+                    log(f"Sent message {msg_id}")
                     last_ids[channel].append(msg_id)
                     last_ids[channel] = last_ids[channel][-limit:]
                     save_last_ids(channel, last_ids[channel], limit)
                 else:
-                    print(f"[{now()}] [-] Failed to send message {msg_id} after retries, SKIPPED!")
+                    log(f"Failed to send message {msg_id} after retries, SKIPPED!")
 
                 time.sleep(3)
                 
-        print(f"[{now()}] --- Updating Channels UPDT in Bale ------")
-        update_chnl_list(CHNL_CID)
+        # NOTE:
+        # The below function, updates the channel/group description with
+        # the supported channels list and the last Telegram check time.
+        # Uncomment only if you're sending the messages in a group/channel.
+
+        # log("--- Updating Channels UPDT in Bale ------")
+        # update_chnl_list(CHNL_CID)
 
         sleep_time = 180
         print(f"\n\n[{now()}] Sleeping for {sleep_time / 60} minutes . . .")

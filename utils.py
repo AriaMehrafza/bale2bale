@@ -3,11 +3,35 @@ import json
 import config
 
 
-BALE_URL= f"https://tapi.bale.ai/bot{config.BOT_TOKEN}"
+BOT_URL = f"https://tapi.bale.ai/bot{config.BOT_TOKEN}"
 CID = config.DATAS_UID
 
 def gen_url(usr_name, limit=1) -> str:
     return f"http://tg.i-c-a.su/json/{usr_name}?limit={limit}"
+
+
+def send_msg(text, chat_id):
+    """ Sends a text message to a specific Bale chat """
+#    print("------- BEGIN MESSAGE -------")
+#    print(text)
+#    print("-------- END MESSAGE --------")
+#    print("")
+    
+    r = requests.post(
+        f"{BOT_URL}/sendMessage",
+        json={
+            "chat_id": chat_id,
+            "text": text,
+        },
+        timeout=10,
+    )
+
+    if r.status_code != 200:
+        raise Exception(f"Bad status: {r.status_code} | {r.text}\n")
+        print(f"Message is: {text}")
+
+    print(f"Sent Message to Bale: {r.status_code}")
+    return r
 
 
 def send_doc(url, caption=None, chat_id=CID):
@@ -20,7 +44,7 @@ def send_doc(url, caption=None, chat_id=CID):
 
     try:
         res = requests.post(
-            f"{BALE_URL}/sendDocument",
+            f"{BOT_URL}/sendDocument",
             json=payload,
             timeout=25,
         )
@@ -34,9 +58,10 @@ def send_doc(url, caption=None, chat_id=CID):
         print("\nResult: ", res.status_code)
         print("\n\nDetails: ", js_res)
         return True, file_id
+
     except Exception as e:
-        print("Got error while sending document: ", e)
-        return False
+        print("Got error while uploading document to Bale: ", e)
+        return False, None
 
 
 def dl_doc(file_id, path, file_name):
@@ -47,7 +72,7 @@ def dl_doc(file_id, path, file_name):
     
     try:
         res = requests.post(
-            f"{BALE_URL}/getFile",
+            f"{BOT_URL}/getFile",
             json=payload,
         )
 
@@ -73,7 +98,7 @@ def dl_doc(file_id, path, file_name):
         if dl_res.status_code != 200:
             raise Exception(f"Bad Status: {res.status_code} | {res.text}")
     except Exception as e:
-        print("Got error during downloading the file: ", e)
+        print("Got error while downloading the file: ", e)
         return False
 
     with open(f"{path}/{file_name}", "wb") as f:
@@ -94,7 +119,7 @@ def dl_scrnsht(url, chat_id=CID):
 
     try:
         res = requests.get(
-            f"{BALE_URL}/sendDocument",
+            f"{BOT_URL}/sendDocument",
             json=payload,
         )
 
