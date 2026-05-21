@@ -503,6 +503,8 @@ def fetch_via_proxy(channel: str, limit: int, retries=5) -> json:
     url = f"https://tg.i-c-a.su/json/{channel}?limit={limit}"
    
     while retries:
+        retries -= 1
+
         try:
             res = requests.get(url, proxies=proxies)
             
@@ -515,10 +517,8 @@ def fetch_via_proxy(channel: str, limit: int, retries=5) -> json:
             log(f"❌ Error fetching {channel}: {e}\n")
             time.sleep(10)
 
-        retries -= 1
-
     if retries == 0:
-        return {}
+        return None
 
 
 def pin_msg(msg_id, chat_id=CHNL_CID):
