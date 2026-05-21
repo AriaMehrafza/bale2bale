@@ -452,8 +452,6 @@ def fetch_via_bale(channel: str, limit: int, retries=5) -> json:
     log("Fetching messages through Bale")
 
     url = f"https://tg.i-c-a.su/json/{channel}?limit={limit}"
-
-    print(f"URL is: {url}")
     
     while retries:
         retries -= 1
