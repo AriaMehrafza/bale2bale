@@ -317,7 +317,7 @@ def get_doc(file_id, path, file_name):
     return True
 
 
-def send_doc(url, caption=None, chat_id=CHNL_CID):
+def send_doc(url, caption=None, chat_id=DATAS_UID):
     """ Upload a document using direct-link to Bale """
     def do_req():
         payload = {
@@ -447,6 +447,13 @@ def save_last_ids(channel, last_ids, limit):
         f.write(" ".join(map(str, last_ids[-limit:])))
 
 
+class APIFetchError(Exception):
+    def __init__(self, status_code, msg):
+        self.status_code = status_code
+        self.msg = msg
+        super().__init__(f"{status_code}: {msg}")
+
+
 def fetch_via_bale(channel: str, limit: int, retries=5) -> json:
     """ Fetchs Telegram messages using the API from Bale """
     log("Fetching messages through Bale")
@@ -491,8 +498,6 @@ def fetch_via_proxy(channel: str, limit: int, retries=5) -> json:
     Fetchs Telegram messages using SOCKS proxy.
     (usable if you have a SOCKS proxy which can fetch from the API)
     """
-    log("Fetching messages through Proxy")
-
     proxies = {
         # Add your SOCKS proxy here.
         # For e.g. if the proxy is running on localhost port 1080:
@@ -500,6 +505,8 @@ def fetch_via_proxy(channel: str, limit: int, retries=5) -> json:
         "https": "socks5h://127.0.0.1:1080"
     }
  
+    log("Fetching messages through Proxy")
+
     url = f"https://tg.i-c-a.su/json/{channel}?limit={limit}"
    
     while retries:
@@ -509,15 +516,21 @@ def fetch_via_proxy(channel: str, limit: int, retries=5) -> json:
             res = requests.get(url, proxies=proxies, timeout=15)
             
             if res.status_code != 200:
-                raise Exception(f"Status code: {res.status_code} | Details: {res.text}")
+                raise APIFetchError(
+                    res.status_code,
+                    res.json()["errors"][0]["message"]
+                )
 
             return res.json()
+
+        except APIFetchError:
+            raise
 
         except Exception as e:
             log(f"❌ Error fetching {channel}: {e}\n")
             time.sleep(10)
 
-    if retries == 0:
+    if retries == -1:
         return None
 
 
