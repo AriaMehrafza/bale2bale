@@ -28,7 +28,7 @@ echo "----------------------------------------"
 
 read -p "Please enter your Bale bot token: " BALE_TOKEN
 
-read -p "Please enter the channel/group UID for message reception and sending: " CHNL_UID
+read -p "Please enter the channel/group UID for tunnel to API: " CHNL_UID
 
 read -p "Please enter the channel/group UID for message forwarding: " DATAS_UID
 
