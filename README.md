@@ -17,54 +17,47 @@ NOTE: You'll need the UID of the two channels/groups you've made. In order to fi
 ```web.bale.ai/chat?uid=<UID>```.
 Copy the UID from here.
 
-### 🐧 Linux
 
-1. Clone the repository:
+### Clone the repository:
 
 ```bash
 git clone https://github.com/AriaMehrafza/bale2bale.git
 cd bale2bale
 ```
 
-2. Create a virtual enviroment and activate it:
+If cloning doesn't work, you can download the zip from this [link](https://github.com/AriaMehrafza/bale2bale/archive/refs/heads/main.zip)
+
+### 🐧 Linux
+1. Create a virtual enviroment and activate it:
 
 ```bash
 python3 -m venv venv
 source venv/bin/activate
 ```
 
-3. Setup the configurations:
-
+2. Setup the configurations:
 ```bash
 chmod +x setup.sh
 ./setup.sh
 ```
-
 The setup file installs requirements using pip, then inputs the config data from user.
 
 ### 🪟 Windows
 
-1. Clone the repository:
-
-```powershell
-git clone https://github.com/AriaMehrafza/bale2bale.git
-cd bale2bale
-```
-
-2. Create virtual environment and activate it:
+1. Create virtual environment and activate it:
 
 ```powershell
 python -m venv venv
 venv\Scripts\activate
 ```
 
-3. Run setup:
+2. Run setup:
 
 ```powershell
 setup.bat
 ```
 
-The batch setup script installs requirements and generates `config.py`.
+The setup file installs requirements using pip, then inputs the config data from user.
 
 ---
 
