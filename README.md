@@ -44,7 +44,7 @@ The setup file installs requirements using pip, then inputs the config data from
 
 ### 🪟 Windows
 
-1. Create virtual environment and activate it:
+1. Create a virtual environment and activate it:
 
 ```powershell
 python -m venv venv
