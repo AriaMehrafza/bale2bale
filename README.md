@@ -35,7 +35,7 @@ python3 -m venv venv
 source venv/bin/activate
 ```
 
-2. Setup the configurations:
+2. Run setup:
 ```bash
 chmod +x setup.sh
 ./setup.sh
