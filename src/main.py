@@ -499,11 +499,11 @@ def fetch_via_bale(channel: str, limit: int, retries=5) -> json:
 def fetch_via_proxy(channel: str, limit: int, retries=5) -> json:
     """
     Fetchs Telegram messages using SOCKS proxy.
-    (usable if you have a SOCKS proxy which can fetch from the API)
+    (usable if you have a proxy which can fetch from the API)
     """
     proxies = {
-        # Add your SOCKS proxy here.
-        # For e.g. if the proxy is running on localhost port 1080:
+        # Add your proxy here.
+        # For e.g. if the proxy is SOCKS5 and running on localhost port 1080:
         "http": "socks5h://127.0.0.1:1080",
         "https": "socks5h://127.0.0.1:1080"
     }
