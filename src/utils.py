@@ -1,10 +1,10 @@
-import requests
 import json
-import config
+import requests
+from . import config
 
 
 BOT_URL = f"https://tapi.bale.ai/bot{config.BOT_TOKEN}"
-CID = config.DATAS_UID
+CID = config.TUN_UID
 
 def gen_url(usr_name, limit=1) -> str:
     return f"http://tg.i-c-a.su/json/{usr_name}?limit={limit}"
