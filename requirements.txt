@@ -7,3 +7,4 @@ requests==2.33.1
 sgmllib3k==1.0.0
 socks==0
 urllib3==2.6.3
+aiohttp==3.13.5
