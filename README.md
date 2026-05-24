@@ -35,11 +35,7 @@ python3 -m venv venv
 source venv/bin/activate
 ```
 
-<<<<<<< HEAD
 2. Run setup:
-=======
-2. Setup the configurations:
->>>>>>> 22a2725 (docs: add direct download link for cloning)
 ```bash
 chmod +x setup.sh
 ./setup.sh
@@ -48,11 +44,7 @@ The setup file installs requirements using pip, then inputs the config data from
 
 ### 🪟 Windows
 
-<<<<<<< HEAD
 1. Create a virtual environment and activate it:
-=======
-1. Create virtual environment and activate it:
->>>>>>> 22a2725 (docs: add direct download link for cloning)
 
 ```powershell
 python -m venv venv
