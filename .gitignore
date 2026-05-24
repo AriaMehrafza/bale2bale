@@ -51,6 +51,8 @@ coverage.xml
 .pytest_cache/
 cover/
 *_test.py
+test_*.py
+tests/
 
 # Translations
 *.mo
@@ -219,4 +221,6 @@ __marimo__/
 .streamlit/secrets.toml
 
 # Configs
-config.py
+src/config.py
+src/venv/
+src/datas/

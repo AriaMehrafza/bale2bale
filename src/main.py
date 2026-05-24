@@ -23,6 +23,7 @@ import jalali
 channels = config.CHANNELS
 
 CHNL_CID = config.CHNL_UID
+DATAS_CID = config.DATAS_UID
 BOT_URL = f"https://tapi.bale.ai/bot{config.BOT_TOKEN}"
 
 def now():
@@ -42,8 +43,8 @@ def log(msg):
     For example:
         [2026-05-21 | 18:39:20] Making needed directories . . .
     """
-    print(f"[{now()}] {msg}")
 
+    print(f"[{now()}] {msg}")
 
 def make_dirs():
     """ Make needed directories """
@@ -286,8 +287,8 @@ def get_doc(file_id, path, file_name):
             json=payload,
         )
 
-        print("\nfile_id: ", file_id)
-        print("\npayload: ", payload)
+        log("\nfile_id: ", file_id)
+        log("\npayload: ", payload)
 
         if res.status_code != 200:
             raise Exception(f"Bad Status: {res.status_code} | {res.text}")
@@ -317,7 +318,7 @@ def get_doc(file_id, path, file_name):
     return True
 
 
-def send_doc(url, caption=None, chat_id=DATAS_UID):
+def send_doc(url, caption=None, chat_id=DATAS_CID):
     """ Upload a document using direct-link to Bale """
     def do_req():
         payload = {
@@ -341,8 +342,8 @@ def send_doc(url, caption=None, chat_id=DATAS_UID):
             js_res = json.dumps(res.json(), indent=4)
             file_id = res.json()['result']['document']['file_id'].strip()
 
-            print("\nResult: ", res.status_code)
-            print("\n\nDetails: ", js_res)
+            log("\nResult: ", res.status_code)
+            log("\n\nDetails: ", js_res)
             return True, file_id
 
         except Exception as e:
@@ -477,7 +478,7 @@ def fetch_via_bale(channel: str, limit: int, retries=5) -> json:
                 continue
 
             if get_doc(file_id, "datas/api_results", f"{channel}.json"):
-                print("\n✅ Successfully downloaded file to local\n")
+                log("Successfully downloaded file to local\n")
 
                 with open(f"datas/api_results/{channel}.json", "r") as f:
                     try:
@@ -526,11 +527,19 @@ def fetch_via_proxy(channel: str, limit: int, retries=5) -> json:
         except APIFetchError:
             raise
 
+        # except SOCKSHTTPSConnectionPool:
+        #     raise
+
         except Exception as e:
-            log(f"❌ Error fetching {channel}: {e}\n")
+            log(f"❌ Error fetching {channel}: {e}")
+            log(f"Retries left: {retries}\n")
+
+            if retries == 0:
+                raise
+
             time.sleep(10)
 
-    if retries == -1:
+    if retries == 0:
         return None
 
 
@@ -609,17 +618,17 @@ def update_chnl_desc(chat_id):
         log("Got error while editting list: ", e)
         return
 
-    print("🆗 DONE!\n")
+    log("DONE!\n")
 
 
 def main():
-    print("\n============================================================")
-    log("Bale Telegram Forwarder Bot Running")
-    print("============================================================\n")
+    print("\n+----------------------------------------------------------------+")
+    print(f"| [{now()}] Telegram-to-Bale Forwarder Bot Running |")
+    print("+----------------------------------------------------------------+\n")
 
     log("Making needed directories . . .")
     make_dirs()
-    log("Directories done!")
+    log("Making directories done!")
 
     last_ids = {ch: load_last_ids(ch) for ch in channels.keys()}
 
@@ -627,7 +636,7 @@ def main():
         for channel, limit in channels.items():
             print(f"\n[{now()}] Checking channel: {channel}\n")
 
-            data = fetch_via_bale(channel, limit)
+            data = fetch_via_proxy(channel, limit) # fetch_via_bale(channel, limit)
 
             if not data:
                 log("Empty fetch result")
