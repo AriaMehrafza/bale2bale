@@ -18,7 +18,7 @@ if %errorlevel% neq 0 (
 echo.
 set /p BOT_TOKEN=Enter your Bale bot token: 
 set /p CHNL_UID=Enter Bale destination channel/group UID: 
-set /p DATAS_UID=Enter Bale forwarding channel/group UID: 
+set /p TUN_UID=Enter Bale forwarding channel/group UID: 
 
 echo.
 echo Enter channels in this format:
@@ -30,7 +30,7 @@ echo.
 (
 echo BOT_TOKEN = "%BOT_TOKEN%"
 echo CHNL_UID = %CHNL_UID%
-echo DATAS_UID = %DATAS_UID%
+echo TUN_UID = %TUN_UID%
 echo.
 echo CHANNELS = {
 ) > config.py

@@ -30,7 +30,7 @@ read -p "Please enter your Bale bot token: " BALE_TOKEN
 
 read -p "Please enter the channel/group UID for tunnel to API: " CHNL_UID
 
-read -p "Please enter the channel/group UID for message forwarding: " DATAS_UID
+read -p "Please enter the channel/group UID for message forwarding: " TUN_UID
 
 declare -a CHANNELS_ARRAY
 
@@ -59,7 +59,7 @@ done
 
 CONFIG_CONTENT+="BOT_TOKEN = \"$BALE_TOKEN\"\n"
 CONFIG_CONTENT+="CHNL_UID = $CHNL_UID\n"
-CONFIG_CONTENT+="DATAS_UID = $DATAS_UID\n\n"
+CONFIG_CONTENT+="TUN_UID = $TUN_UID\n\n"
 
 CONFIG_CONTENT+="CHANNELS = {\n"
 
