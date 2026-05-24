@@ -1,11 +1,13 @@
-import asyncio
-import aiohttp
 import time
-import requests
-import config
 import json
 import os
-from main import (
+
+import asyncio
+import aiohttp
+import requests
+
+from . import config
+from .main import (
     clean_html,
     format_time,
     send_msg,
@@ -264,9 +266,6 @@ async def main() -> None:
                                 chat_id
                             )
 
-                            continue
-
-                        elif chat_id in channels_list:
                             continue
 
                         if msg_text.strip() == "/start":
