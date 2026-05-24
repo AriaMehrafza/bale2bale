@@ -7,23 +7,25 @@
 # and replacing the 'fetch_via_bale' on line 583
 # with 'fetch_via_proxy' :)
 
+import json
 import time
 import re
 import os
+
 import requests
-import json
 from html import unescape
 from datetime import datetime
-import config
-import utils
-import jalali
+
+from . import config
+from . import jalali
+from . import utils
 
 
 # Format: <CHANNEL_USERNAME>: <NUMBER_OF_MESSAGES>
 channels = config.CHANNELS
 
-CHNL_CID = config.CHNL_UID
-DATAS_CID = config.DATAS_UID
+CHNL_UID = config.CHNL_UID
+TUN_UID = config.TUN_UID
 BOT_URL = f"https://tapi.bale.ai/bot{config.BOT_TOKEN}"
 
 def now():
@@ -152,7 +154,7 @@ def retry_req(func, max_retries=5, delay=2, backoff=1.5):
             time.sleep(delay)
 
 
-def send_msg(text, chat_id=CHNL_CID):
+def send_msg(text, chat_id=CHNL_UID):
     """ Sends a text message to a specific Bale chat """
     def do_req():
         print("")
@@ -180,7 +182,7 @@ def send_msg(text, chat_id=CHNL_CID):
     return retry_req(do_req)
 
 
-def send_photo(photo_url, caption, chat_id=CHNL_CID):
+def send_photo(photo_url, caption, chat_id=CHNL_UID):
     """ Sends a photo with caption to a specific Bale chat """
     def do_req():
         print("")
@@ -212,7 +214,7 @@ def send_photo(photo_url, caption, chat_id=CHNL_CID):
     return retry_req(do_req)
 
 
-def send_video(video_url, caption, chat_id=CHNL_CID):
+def send_video(video_url, caption, chat_id=CHNL_UID):
     """ Sends a video with caption to a specific Bale chat """
     def do_req():
         print("")
@@ -243,7 +245,7 @@ def send_video(video_url, caption, chat_id=CHNL_CID):
     return retry_req(do_req)
 
 
-def send_audio(audio_url, caption, chat_id=CHNL_CID):
+def send_audio(audio_url, caption, chat_id=CHNL_UID):
     """ Sends an audio file with caption to a specific Bale chat """
     def do_req():
         print("")
@@ -318,7 +320,7 @@ def get_doc(file_id, path, file_name):
     return True
 
 
-def send_doc(url, caption=None, chat_id=DATAS_CID):
+def send_doc(url, caption=None, chat_id=TUN_UID):
     """ Upload a document using direct-link to Bale """
     def do_req():
         payload = {
@@ -543,7 +545,7 @@ def fetch_via_proxy(channel: str, limit: int, retries=5) -> json:
         return None
 
 
-def pin_msg(msg_id, chat_id=CHNL_CID):
+def pin_msg(msg_id, chat_id=CHNL_UID):
     """ Pins a message in a chat (currently unused) """
     payload = {
         "chat_id": chat_id,
@@ -564,7 +566,7 @@ def pin_msg(msg_id, chat_id=CHNL_CID):
     return res
 
 
-def unpin_msg(msg_id, chat_id=CHNL_CID):
+def unpin_msg(msg_id, chat_id=CHNL_UID):
     """ Unpins a message in a chat (currently unused) """
     payload = {
         "chat_id": chat_id,
@@ -693,7 +695,7 @@ def main():
         # Uncomment only if you're sending the messages in a group/channel.
 
         # log("--- Updating Channels UPDT in Bale ------")
-        # update_chnl_list(CHNL_CID)
+        # update_chnl_list(CHNL_UID)
 
         sleep_time = 180
         print(f"\n\n[{now()}] Sleeping for {sleep_time / 60} minutes . . .")
