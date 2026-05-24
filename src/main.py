@@ -503,9 +503,9 @@ def fetch_via_proxy(channel: str, limit: int, retries=5) -> json:
     """
     proxies = {
         # Add your proxy here.
-        # For e.g. if the proxy is SOCKS5 and running on localhost port 1080:
-        "http": "socks5h://127.0.0.1:1080",
-        "https": "socks5h://127.0.0.1:1080"
+        # For e.g. if the proxy is SOCKS5 and running on localhost port 10808:
+        "http": "socks5h://127.0.0.1:10808",
+        "https": "socks5h://127.0.0.1:10808"
     }
  
     log("Fetching messages through Proxy")
