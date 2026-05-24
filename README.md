@@ -31,7 +31,7 @@ If cloning doesn't work, you can download the zip from this [link](https://githu
 1. Create a virtual enviroment and activate it:
 
 ```bash
-python3 -m venv venv
+python -m venv venv
 source venv/bin/activate
 ```
 
@@ -66,7 +66,7 @@ The setup file installs requirements using pip, then inputs the config data from
 Simply run:
 
 ```bash
-python3 -m src.main
+python -m src.main
 ```
 
 ---
