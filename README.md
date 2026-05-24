@@ -66,7 +66,7 @@ The setup file installs requirements using pip, then inputs the config data from
 Simply run:
 
 ```bash
-python3 main.py
+python3 -m src.main
 ```
 
 ---
