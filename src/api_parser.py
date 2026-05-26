@@ -1,17 +1,23 @@
-import requests
 import json
 import os
-from utils import send_doc, dl_doc
+
+import requests
+
+from .utils import(
+    log,
+    now,
+    send_doc,
+    dl_doc
+)
+
+BASE_URL = f"https://tapi.bale.ai/bot"
 
 
-def fetch_json(url: str, bot_token: str, tunnel_uid: int, retries=10) -> json:
-#    if not url.startswith("https://") or not url.startswith("http://"):
-#        raise Exception("Protocol is needed")
-#        return False
+def fetch_json(url: str, bot_token: str, tunnel_uid: int, __verbose__=True, retries=10) -> dict:
+    bale_url = f"{BASE_URL}{bot_token}"
 
+    # TODO: Replace with a class for better exception handling
     bad_js_res = json.dumps({"success": False})
-
-    bale_url = f"https://tapi.bale.ai/bot{bot_token}"
 
     try:
         bl_res, file_id = send_doc(url, url, tunnel_uid)
@@ -22,12 +28,12 @@ def fetch_json(url: str, bot_token: str, tunnel_uid: int, retries=10) -> json:
     except Exception as e:
         return bad_js_res
 
-    print("Uploaded data to Bale successfull!")
+    log("Uploaded data to Bale successfull!")
 
-    print("Making a directory (api_results) for the result to save")
+    log("Making a directory (api_results) for the result to save")
     os.makedirs("api_results", exist_ok=True)
 
-    print("Getting the file download link from Bale . . .")
+    log("Getting the file download link from Bale . . .")
 
     try:
         getFile_payload = { "file_id": file_id }
@@ -42,12 +48,12 @@ def fetch_json(url: str, bot_token: str, tunnel_uid: int, retries=10) -> json:
         raise Exception("Got exception while getting download link:", e)
         return bad_js_res
 
-    print(getFile_res.json())
+    log(getFile_res.json())
 
     file_path = getFile_res.json()["result"]["file_path"]
     dl_link = f"https://tapi.bale.ai/file/bot{bot_token}/{file_path}"
 
-    print("Got the download link successfully:", dl_link)
+    log(f"Got the download link successfully: {dl_link}")
 
     try:
         dl_res = requests.get(
@@ -60,4 +66,8 @@ def fetch_json(url: str, bot_token: str, tunnel_uid: int, retries=10) -> json:
         raise Exception("Got exception while downloading the file:", e)
         return bad_js_res
 
-    return json.dumps(dl_res.content)
+    try:
+        return json.loads(dl_res.text)
+
+    except json.JSONDecodeError:
+        return bad_js_res

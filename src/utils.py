@@ -1,10 +1,113 @@
 import json
+from datetime import datetime
+
 import requests
+
 from . import config
 
 
 BOT_URL = f"https://tapi.bale.ai/bot{config.BOT_TOKEN}"
 CID = config.TUN_UID
+
+def now():
+    """
+    Return current local time formatted for logs.
+    Example: 2026-05-10 | 12:34:56
+    """
+    date = datetime.now().strftime("%Y-%m-%d")
+    time = datetime.now().strftime("%H:%M:%S")
+    return f"{date} | {time}"
+
+
+def log(msg):
+    """
+    Prints logged format.
+
+    For example:
+        [2026-05-21 | 18:39:20] Making needed directories . . .
+    """
+
+    print(f"[{now()}] {msg}")
+
+def make_dirs():
+    """ Make needed directories """
+    os.makedirs("datas/", exist_ok=True)
+    os.makedirs("datas/last_ids/", exist_ok=True)
+    os.makedirs("datas/api_results/", exist_ok=True)
+
+
+def build_media_url(channel_uname: str, msg_id: int):
+    """ Builds a downloadable media URL for a Telegram message """
+    return f"https://tg.i-c-a.su/media/{channel_uname}/{msg_id}"
+
+
+def clean_html(text: str):
+    """ Converts recieved HTML format from API to clean text """
+    if not text:
+        return ""
+
+    text = unescape(text)
+    text = re.sub(r"<br\s*/?>", "\n", text, flags=re.IGNORECASE)
+
+    def repl(match):
+        return match.group(1)
+
+    text = re.sub(
+        r'<a\s+href="([^"]+)".*?>.*?</a>',
+        repl,
+        text,
+        flags=re.IGNORECASE,
+    )
+    text = re.sub(r"<[^>]+>", "", text)
+    text = re.sub(r"\n+", "\n", text).strip()
+
+    return text
+
+
+def clean_proxy(text: str):
+    """
+    (Made specailly for @ProxyMTProto.)
+    Convert Telegram proxy information into a clickable proxy URL.
+    """
+    lines = ["", "", ""]
+    cnt = 0
+    for c in text:
+        if cnt == 3:
+            break
+
+        if c == '\n':
+            cnt += 1
+            continue
+        else:
+            lines[cnt] += c
+
+    server = lines[0][8:]
+    port = lines[1][6:]
+    secret = lines[2][8:]
+
+    return f"https://t.me/proxy?server={server}&port={port}&secret={secret}"
+
+
+def format_time(raw_date):
+    """ Convert Gregorian dates to Persian readable timestamps """
+
+    if isinstance(raw_date, int):
+        g = datetime.fromtimestamp(raw_date)
+        return jalali.Gregorian(
+            g.year, g.month, g.day
+        ).persian_string() + f" | {g.strftime('%H:%M')}"
+
+    if isinstance(raw_date, str):
+        try:
+            g = datetime.fromisoformat(raw_date.replace("Z", ""))
+            p_date = jalali.Gregorian(
+                g.year, g.month, g.day
+            ).persian_string()
+            return f"{p_date} | {g.strftime('%H:%M')}"
+        except:
+            return raw_date
+
+    return "unknown time"
 
 def gen_url(usr_name, limit=1) -> str:
     return f"http://tg.i-c-a.su/json/{usr_name}?limit={limit}"

@@ -225,8 +225,9 @@ async def main() -> None:
                     for update in data["result"]:
                         offset = update["update_id"] + 1
 
-                        if update["message"]["chat"]["type"] != "private":
-                            continue
+                        is_private = False
+                        if update["message"]["chat"]["type"] == "private":
+                            is_private = True
 
                         msg = update.get("message") or update.get("edited_message")
                         if not msg:
@@ -259,16 +260,19 @@ async def main() -> None:
                                 LOGS_CHNL
                             )
 
-                            await asyncio.to_thread(
-                                send_msg,
-                                f"در حال حاضر لیمیت خوردیم و نمیتونیم کاریش کنیم.\n"
-                                f"سعی میکنیم به زودی برگردیم. (:",
-                                chat_id
-                            )
+                            # await asyncio.to_thread(
+                            #     send_msg,
+                            #     f"در حال حاضر لیمیت خوردیم و نمیتونیم کاریش کنیم.\n"
+                            #     f"سعی میکنیم به زودی برگردیم. (:",
+                            #     chat_id
+                            # )
 
                             continue
 
                         if msg_text.strip() == "/start":
+                            if not is_private:
+                                continue
+
                             help_msg = (
                                 "نحوه استفاده:\n"
                                 "/get <CHANNEL_USERNAME> <LIMIT>\n\n"
