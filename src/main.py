@@ -19,6 +19,7 @@ from datetime import datetime
 from . import config
 from . import jalali
 from . import utils
+from . import api_parser
 
 
 # Format: <CHANNEL_USERNAME>: <NUMBER_OF_MESSAGES>
@@ -26,7 +27,8 @@ channels = config.CHANNELS
 
 CHNL_UID = config.CHNL_UID
 TUN_UID = config.TUN_UID
-BOT_URL = f"https://tapi.bale.ai/bot{config.BOT_TOKEN}"
+BOT_TOKEN = config.BOT_TOKEN
+BOT_URL = f"https://tapi.bale.ai/bot{BOT_TOKEN}"
 
 def now():
     """
@@ -461,33 +463,15 @@ def fetch_via_bale(channel: str, limit: int, retries=5) -> json:
     """ Fetchs Telegram messages using the API from Bale """
     log("Fetching messages through Bale")
 
-    url = f"https://tg.i-c-a.su/json/{channel}?limit={limit}"
+    api_url = f"https://tg.i-c-a.su/json/{channel}?limit={limit}"
     
     while retries:
         time.sleep(5)
 
         retries -= 1
         try:
-            log(f"Fetching {channel} via BALE!: {url}")
-            try:
-                send_res, file_id = send_doc(url)
-
-                if not send_res:
-                    continue
-
-            except Exception as e:
-                raise Exception(e)
-                continue
-
-            if get_doc(file_id, "datas/api_results", f"{channel}.json"):
-                log("Successfully downloaded file to local\n")
-
-                with open(f"datas/api_results/{channel}.json", "r") as f:
-                    try:
-                        return json.load(f)
-                    except json.JSONDecodeError:
-                        return None
-
+            return api_parser.fetch_json(api_url, BOT_TOKEN, TUN_UID)
+            
         except Exception as e:
             log(f"❌ Error fetching {channel}: {e}\n")
             time.sleep(10)
