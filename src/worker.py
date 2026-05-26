@@ -260,15 +260,6 @@ async def main() -> None:
                                 LOGS_CHNL
                             )
 
-                            # await asyncio.to_thread(
-                            #     send_msg,
-                            #     f"در حال حاضر لیمیت خوردیم و نمیتونیم کاریش کنیم.\n"
-                            #     f"سعی میکنیم به زودی برگردیم. (:",
-                            #     chat_id
-                            # )
-
-                            continue
-
                         if msg_text.strip() == "/start":
                             if not is_private:
                                 continue
