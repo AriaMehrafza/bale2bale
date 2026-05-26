@@ -19,7 +19,7 @@ def now():
     return f"{date} | {time}"
 
 
-def log(msg):
+def _log(msg):
     """
     Prints logged format.
 
@@ -113,14 +113,14 @@ def gen_url(usr_name, limit=1) -> str:
     return f"http://tg.i-c-a.su/json/{usr_name}?limit={limit}"
 
 
-def send_msg(text, chat_id):
+def send_msg(text, chat_id, verbose=True):
     """ Sends a text message to a specific Bale chat """
-#    print("------- BEGIN MESSAGE -------")
-#    print(text)
-#    print("-------- END MESSAGE --------")
-#    print("")
-    
-    r = requests.post(
+    log = _log
+
+    if not verbose:
+        log = lambda *args, **kwargs: None
+
+    res = requests.post(
         f"{BOT_URL}/sendMessage",
         json={
             "chat_id": chat_id,
@@ -129,16 +129,19 @@ def send_msg(text, chat_id):
         timeout=10,
     )
 
-    if r.status_code != 200:
-        raise Exception(f"Bad status: {r.status_code} | {r.text}\n")
-        print(f"Message is: {text}")
+    res.raise_for_status()
 
-    print(f"Sent Message to Bale: {r.status_code}")
-    return r
+    log(f"Sent Message to Bale: {res.status_code}")
+    return res
 
 
-def send_doc(url, caption=None, chat_id=CID):
+def send_doc(url, caption=None, chat_id=CID, verbose=True):
     """ Upload a document using direct-link to Bale """
+    log = _log
+
+    if not verbose:
+        log = lambda *args, **kwargs: None
+
     payload = {
         "chat_id": chat_id,
         "document": url,
@@ -152,23 +155,27 @@ def send_doc(url, caption=None, chat_id=CID):
             timeout=25,
         )
         
-        if res.status_code != 200:
-            raise Exception(f"Bad Status: {res.status_code} | {res.text}")
+        res.raise_for_status()
 
         js_res = json.dumps(res.json(), indent=4)
         file_id = res.json()['result']['document']['file_id'].strip()
 
-        print("\nResult: ", res.status_code)
-        print("\n\nDetails: ", js_res)
-        return True, file_id
+        log(f"Result: {res.status_code}")
+        log(f"Details: {js_res}")
+        return file_id
 
     except Exception as e:
-        print("Got error while uploading document to Bale: ", e)
-        return False, None
+        log(f"Got error while uploading document to Bale: {e}")
+        return None
 
 
-def dl_doc(file_id, path, file_name):
+def dl_doc(file_id, path, file_name, verbose=True):
     """ Download a document using File ID from Bale """
+    log = _log
+
+    if not verbose:
+        log = lambda *args, **kwargs: None
+
     payload = {
         "file_id": file_id
     }
@@ -179,15 +186,15 @@ def dl_doc(file_id, path, file_name):
             json=payload,
         )
 
-        print("\nfile_id: ", file_id)
-        print("\npayload: ", payload)
+        log("\nfile_id: ", file_id)
+        log("\npayload: ", payload)
 
-        if res.status_code != 200:
-            raise Exception(f"Bad Status: {res.status_code} | {res.text}")
+        res.raise_for_status()
 
-        print(json.dumps(res.json(), indent=4))
+        log(json.dumps(res.json(), indent=4))
+
     except Exception as e:
-        print("Got Error While Downloading the File: ", e)
+        log(f"Got Error While Downloading the File: {e}")
         return False
 
     file_path = res.json()['result']['file_path']
@@ -200,8 +207,9 @@ def dl_doc(file_id, path, file_name):
 
         if dl_res.status_code != 200:
             raise Exception(f"Bad Status: {res.status_code} | {res.text}")
+
     except Exception as e:
-        print("Got error while downloading the file: ", e)
+        log(f"Got error while downloading the file: {e}")
         return False
 
     with open(f"{path}/{file_name}", "wb") as f:
@@ -209,7 +217,13 @@ def dl_doc(file_id, path, file_name):
 
     return True
 
-def dl_scrnsht(url, chat_id=CID):
+
+def dl_scrnsht(url, chat_id=CID, verbose=True):
+    log = _log
+
+    if not verbose:
+        log = lambda *args, **kwargs: None
+
     # For more information visit: screenshotlayer.com
     api_url = f"http://api.screenshotlayer.com/api/capture?access_key={config.SL_TOKEN}&url={url}&fullpage=1"
 
@@ -225,12 +239,11 @@ def dl_scrnsht(url, chat_id=CID):
             f"{BOT_URL}/sendDocument",
             json=payload,
         )
+        res.raise_for_status()
 
-        if res.status_code != 200:
-            raise Exception(f"{res.status_code}:\n{res.text}")
     except Exception as e:
-        print("Got exception while sending screenshot to Bale: ", e)
+        log(f"Got exception while sending screenshot to Bale: {e}")
         return False
 
-    print("Successfully sent screenshot in Bale")
-    print(json.dumps(res.json(), indent=4))
+    log("Successfully sent screenshot in Bale")
+    log(json.dumps(res.json(), indent=4))

@@ -4,7 +4,7 @@ import os
 import requests
 
 from .utils import(
-    log as _log,
+    _log,
     now,
     send_doc,
     dl_doc
@@ -13,7 +13,7 @@ from .utils import(
 BASE_URL = f"https://tapi.bale.ai/bot"
 
 
-def fetch_json(url: str, bot_token: str, tunnel_uid: int, verbose=True, retries=10) -> dict:
+def fetch_json(url: str, bot_token: str, tun_uid: int, verbose=True, retries=10) -> dict:
     """ Fetch a JSON file using Bale Tunnel """
     log = _log
 
@@ -26,13 +26,10 @@ def fetch_json(url: str, bot_token: str, tunnel_uid: int, verbose=True, retries=
     bad_js_res = json.dumps({"success": False})
 
     try:
-        bl_res, file_id = send_doc(url, url, tunnel_uid)
-
-        if not bl_res:
-            raise Exception(e)
+        file_id = send_doc(url, url, tun_uid, verbose)
 
     except Exception as e:
-        return bad_js_res
+        raise
 
     log("Uploaded data to Bale successfull!")
 
