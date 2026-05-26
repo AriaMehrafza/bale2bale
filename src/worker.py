@@ -249,7 +249,7 @@ async def main() -> None:
                             user_tag = "(no username)"
 
                         chat_id = msg["chat"]["id"]
-                        if chat_id != ADMIN_UID:
+                        if chat_id != ADMIN_UID and chat_id != LOGS_CHNL:
                             print("Recieved a message from non-admin:", chat_id)
                             print("Text:", msg_text, '\n')
 
