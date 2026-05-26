@@ -74,7 +74,7 @@ fi
 
 CONFIG_CONTENT+="}\n"
 
-echo -e "$CONFIG_CONTENT" > "$CONFIG_FILE"
+echo -e "$CONFIG_CONTENT" > "src/$CONFIG_FILE"
 
 echo ""
 echo "----------------------------------------"
