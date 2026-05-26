@@ -48,7 +48,7 @@ goto loop
 
 :done
 
-echo } >> config.py
+echo } >> src/config.py
 
 echo.
 echo Setup completed successfully.
