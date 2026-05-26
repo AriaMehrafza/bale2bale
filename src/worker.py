@@ -307,7 +307,7 @@ async def main() -> None:
                                     chat_id
                                 )
 
-                            if limit <= 0:
+                            if limit <= 0 or limit >= 15:
                                 await asyncio.to_thread(
                                     send_msg,
                                     "مقدار limit غیرمجاز است",
