@@ -4,7 +4,7 @@ import os
 import requests
 
 from .utils import(
-    log,
+    log as _log,
     now,
     send_doc,
     dl_doc
@@ -13,8 +13,14 @@ from .utils import(
 BASE_URL = f"https://tapi.bale.ai/bot"
 
 
-def fetch_json(url: str, bot_token: str, tunnel_uid: int, __verbose__=True, retries=10) -> dict:
+def fetch_json(url: str, bot_token: str, tunnel_uid: int, verbose=True, retries=10) -> dict:
+    """ Fetch a JSON file using Bale Tunnel """
+    log = _log
+
     bale_url = f"{BASE_URL}{bot_token}"
+
+    if not verbose:
+        log = lambda *args, **kwargs: None
 
     # TODO: Replace with a class for better exception handling
     bad_js_res = json.dumps({"success": False})
