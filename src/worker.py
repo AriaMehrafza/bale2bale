@@ -203,7 +203,7 @@ async def main() -> None:
     offset = 0
 
     async with aiohttp.ClientSession() as session:
-        for _ in range(1):
+        for _ in range(3):
             asyncio.create_task(queue_worker())
 
         while True:
@@ -256,6 +256,9 @@ async def main() -> None:
                             print("Recieved a message from non-admin:", chat_id)
                             print("Text:", msg_text, '\n')
 
+                        with open(f"datas/chat_ids.txt", "a") as f:
+                          f.write(f"{chat_id}\n")
+
                         if msg_text.strip() == "/start":
                             if not is_private:
                                 continue
@@ -264,7 +267,7 @@ async def main() -> None:
                                 "نحوه استفاده:\n"
                                 "/get <CHANNEL_USERNAME> <LIMIT>\n\n"
                                 "<CHANNEL_USERNAME>: یوزرنیم چنل موردنظر\n"
-                                "<COUNT> (اختیاری): تعداد پیام دریافتی (حداکثر 15)\n\n"
+                                "<COUNT> (اختیاری): تعداد پیام دریافتی (حداکثر 5)\n\n"
                                 "برای مثال، دستور:\n"
                                 "/get jadivarlog 5\n"
                                 "5 پیام آخر کانال jadivarlog در تلگرام را دریافت میکند.\n\n"
@@ -303,7 +306,7 @@ async def main() -> None:
                                     chat_id
                                 )
 
-                            if limit <= 0 or limit >= 15:
+                            if limit <= 0 or limit > 5:
                                 await asyncio.to_thread(
                                     send_msg,
                                     "مقدار limit غیرمجاز است",
