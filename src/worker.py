@@ -28,7 +28,6 @@ offset = 0
 request_queue = asyncio.Queue()
 
 ADMIN_UID = config.ADMIN_UID
-LOGS_CHNL = config.LOGS_CHNL
 CUR_DIR = os.path.dirname(os.path.abspath(__file__))
 
 async def handle_channel(chat_id: int, channel: str, limit=5, retries=4) -> None:
@@ -253,16 +252,9 @@ async def main() -> None:
                             user_tag = "(no username)"
 
                         chat_id = msg["chat"]["id"]
-                        if chat_id != ADMIN_UID and chat_id != LOGS_CHNL:
+                        if chat_id != ADMIN_UID:
                             print("Recieved a message from non-admin:", chat_id)
                             print("Text:", msg_text, '\n')
-
-                            await asyncio.to_thread(
-                                send_msg,
-                                f"Bot Recieved a message: {user_tag} | {name} | {chat_id}\n"
-                                f"Content:\n{msg_text}",
-                                LOGS_CHNL
-                            )
 
                         if msg_text.strip() == "/start":
                             if not is_private:
