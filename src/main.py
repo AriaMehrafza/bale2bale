@@ -1,12 +1,3 @@
-# NOTE:
-# As Bale is recently unstable in downloading documents
-# from direct-link (specially from foreign servers),
-# if you have a SOCKS proxy (V2ray for e.g.),
-# you can use it instead of Bale-tunnel by modifying the
-# 'fetch_via_proxy' function on line 431 
-# and replacing the 'fetch_via_bale' on line 583
-# with 'fetch_via_proxy' :)
-
 import json
 import time
 import re
@@ -515,6 +506,50 @@ def fetch_via_proxy(channel: str, limit: int, retries=5) -> json:
 
         # except SOCKSHTTPSConnectionPool:
         #     raise
+
+        except Exception as e:
+            log(f"❌ Error fetching {channel}: {e}")
+            log(f"Retries left: {retries}\n")
+
+            if retries == 0:
+                raise
+
+            time.sleep(10)
+
+    if retries == 0:
+        return None
+
+
+def fetch_via_tor(channel: str, limit: int, retries=5) -> json:
+    """
+    Fetchs Telegram messages using Tor.
+    (usable if you have a TOR installed)
+    """
+    proxies = {
+        "http": "socks5h://127.0.0.1:9050",
+        "https": "socks5h://127.0.0.1:9050"
+    }
+ 
+    log("Fetching messages through Tor")
+
+    url = f"https://tg.i-c-a.su/json/{channel}?limit={limit}"
+   
+    while retries:
+        retries -= 1
+
+        try:
+            res = requests.get(url, proxies=proxies, timeout=30)
+            
+            if res.status_code != 200:
+                raise APIFetchError(
+                    res.status_code,
+                    res.json()["errors"][0]["message"]
+                )
+
+            return res.json()
+
+        except APIFetchError:
+            raise
 
         except Exception as e:
             log(f"❌ Error fetching {channel}: {e}")
