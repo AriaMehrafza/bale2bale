@@ -28,6 +28,9 @@ def fetch_json(url: str, bot_token: str, tun_uid: int, verbose=True, retries=10)
     try:
         file_id = send_doc(url, url, tun_uid, verbose)
 
+        if not file_id:
+            raise Exception("File upload failed")
+
     except Exception as e:
         raise
 

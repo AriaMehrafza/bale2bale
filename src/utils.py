@@ -148,6 +148,8 @@ def send_doc(url, caption=None, chat_id=CID, verbose=True):
         "caption": caption,
     }
 
+    log(f"Payload: {payload}")
+
     try:
         res = requests.post(
             f"{BOT_URL}/sendDocument",
@@ -166,7 +168,7 @@ def send_doc(url, caption=None, chat_id=CID, verbose=True):
 
     except Exception as e:
         log(f"Got error while uploading document to Bale: {e}")
-        return None
+        raise
 
 
 def dl_doc(file_id, path, file_name, verbose=True):

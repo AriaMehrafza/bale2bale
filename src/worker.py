@@ -29,11 +29,12 @@ request_queue = asyncio.Queue()
 
 ADMIN_UID = config.ADMIN_UID
 LOGS_CHNL = config.LOGS_CHNL
+CUR_DIR = os.path.dirname(os.path.abspath(__file__))
 
 async def handle_channel(chat_id: int, channel: str, limit=5, retries=4) -> None:
     non_public = set()
-    if os.path.exists("datas/not-public.txt"):
-        with open("datas/not-public.txt", "r") as f:
+    if os.path.exists(f"{CUR_DIR}/datas/not-public.txt"):
+        with open(f"{CUR_DIR}/datas/not-public.txt", "r") as f:
             non_public = {line.strip() for line in f}
 
     if channel in non_public:
@@ -45,10 +46,14 @@ async def handle_channel(chat_id: int, channel: str, limit=5, retries=4) -> None
 
         return
 
-    data = await asyncio.to_thread(
-        fetch_via_bale,
-        channel, limit, retries
-    )
+    try:
+        data = await asyncio.to_thread(
+            fetch_via_bale,
+            channel, limit, retries
+        )
+
+    except:
+        pass # TODO
 
     if not data:
         # TODO: Remove this message as it's unnecessary for the user.
@@ -82,8 +87,8 @@ async def handle_channel(chat_id: int, channel: str, limit=5, retries=4) -> None
             )
 
             if e.status_code == "403" or e.msg == "CHANNEL_PRIVATE" or e.msg == "This is not a public channel":
-                with open("datas/not-public.txt", "a") as f:
-                    f.append(f"\n{channel}")
+                with open(f"{CUR_DIR}/datas/not-public.txt", "a") as f:
+                    f.write(f"{channel}\n")
 
             return
 
@@ -97,6 +102,19 @@ async def handle_channel(chat_id: int, channel: str, limit=5, retries=4) -> None
 
             return
 
+    rec_msg = (
+        f"درحال دریافت"
+        f" {limit} "
+        f"پیام آخر کانال"
+        f" {channel}"
+        f"\n(ممکن است کمی زمان بر باشد)"
+    )
+
+    await asyncio.to_thread(
+        send_msg,
+        rec_msg,
+        chat_id
+    )
         
     await asyncio.to_thread(
         send_msg,
@@ -168,20 +186,6 @@ async def queue_worker() -> None:
 
         try:
             print(f"Processing: {channel_username} (limit={limit})")
-
-            rec_msg = (
-                f"درحال دریافت"
-                f" {limit} "
-                f"پیام آخر کانال"
-                f" {channel_username}"
-                f"\n(ممکن است کمی زمان بر باشد)"
-            )
-
-            await asyncio.to_thread(
-                send_msg,
-                rec_msg,
-                chat_id
-            )
 
             await handle_channel(
                 chat_id,
