@@ -264,7 +264,7 @@ async def main() -> None:
                                 "نحوه استفاده:\n"
                                 "/get <CHANNEL_USERNAME> <LIMIT>\n\n"
                                 "<CHANNEL_USERNAME>: یوزرنیم چنل موردنظر\n"
-                                "<COUNT> (اختیاری): تعداد پیام دریافتی\n\n"
+                                "<COUNT> (اختیاری): تعداد پیام دریافتی (حداکثر 15)\n\n"
                                 "برای مثال، دستور:\n"
                                 "/get jadivarlog 5\n"
                                 "5 پیام آخر کانال jadivarlog در تلگرام را دریافت میکند.\n\n"
