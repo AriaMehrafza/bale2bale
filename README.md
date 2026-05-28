@@ -6,7 +6,7 @@ The bot fetches Telegram channels data through a Bale chat using [tg.i-c-a.su](h
 
 ---
 
-## ❓ Installation
+## Installation
 
 ### First Steps on Bale
 0. If you want forwarded messages to be sent into a group or channel, create one first. Otherwise, you can use your own UID in the following steps.
@@ -27,7 +27,7 @@ cd bale2bale
 
 If cloning doesn't work, you can download the zip from this [link](https://github.com/AriaMehrafza/bale2bale/archive/refs/heads/main.zip)
 
-### 🐧 Linux
+### Linux
 1. Create a virtual enviroment and activate it:
 
 ```bash
@@ -42,7 +42,7 @@ chmod +x setup.sh
 ```
 The setup file installs requirements using pip, then inputs the config data from user.
 
-### 🪟 Windows
+### Windows
 
 1. Create a virtual environment and activate it:
 
@@ -61,7 +61,7 @@ The setup file installs requirements using pip, then inputs the config data from
 
 ---
 
-## 🚀 Running
+## Running
 
 Simply run:
 
@@ -71,12 +71,12 @@ python -m src.main
 
 ---
 
-## ❌ Disclaimer
+## Disclaimer
 
 This project is provided for educational and legitimate use only. The author is not responsible for any misuse or legal consequences arising from the use of this project.
 
 ---
 
-## ©️  License
+## License
 
 This project is licensed under MIT License.
