@@ -18,7 +18,7 @@ NOTE: You'll need the UID of the two channels/groups you've made. In order to fi
 Copy the UID from here.
 
 
-### Clone the repository:
+### Clone the repository
 
 ```bash
 git clone https://github.com/AriaMehrafza/bale2bale.git
@@ -80,3 +80,14 @@ This project is provided for educational and legitimate use only. The author is 
 ## License
 
 This project is licensed under MIT License.
+
+---
+
+## To-Do List
+- [x] Add To-Do List to README
+- [ ] Restructure (rename and move functions)
+- [ ] Add fetching via Telegram official API
+- [ ] Update config and setup scripts
+- [ ] Add instructions for using [bot worker](src/worker.py)
+- [ ] Complete [api_parser](src/api_parser.py) to support more types
+- [ ] Make a release
